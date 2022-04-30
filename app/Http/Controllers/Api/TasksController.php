@@ -58,6 +58,7 @@ class TasksController extends BaseController
         ->when($status, function ($query, $status) {
             return $query->where('status','=', $status);
         })
+        ->orderBy('date', 'asc')
         ->get();
 
         return $this->sendResponse($tasks, []);                            
@@ -113,6 +114,25 @@ public function createTask(Request $request){
    }
 
                               
+}
+
+public function deleteTask(Request $request){
+
+    $validator = Validator::make($request->all(), [
+        'id' => 'required',
+    ]);
+
+    if($validator->fails()){
+        return $this->sendError('Validation Error', $validator->errors(),403);       
+    }
+    $success = auth()->user()->tasks()->find($request->id)->delete();
+
+    if($success){
+        return $this->sendResponse($success, []);  
+     }else{
+        return $this->sendError('Failed', ['Failed'],500);    
+    }
+
 }
 
 };
