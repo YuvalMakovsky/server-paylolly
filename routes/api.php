@@ -21,5 +21,6 @@ Route::post('auth/register', [AuthController::class, 'signup']);
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::post('getTasks', [TasksController::class, 'getTasks']);
+    Route::post('createTask', [TasksController::class, 'createTask']);
     Route::post('auth/logout', [AuthController::class, 'Logout']); 
 });
