@@ -58,7 +58,8 @@ class TasksController extends BaseController
         ->when($status, function ($query, $status) {
             return $query->where('status','=', $status);
         })
-        ->orderBy('date', 'asc')
+        ->orderBy('date', 'ASC')
+        ->orderByRaw("FIELD(status , 'not started', 'in progress', 'completed') ASC")
         ->get();
 
         return $this->sendResponse($tasks, []);                            
