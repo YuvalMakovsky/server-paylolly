@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Tasks;
+use Validator;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -29,14 +31,16 @@ class TasksController extends BaseController
             return $this->sendError('Validation Error', $validator->errors(),403);       
         }
 
-        $tasks = [];
-
+        $name = '';
+        $status = '';
+        $startDate = Carbon::today()->format("Y-m-d");
+        $endDate = Carbon::today()->format("Y-m-d");
         if(!empty($request->startDate)){
-            $startDate = Carbon::createFromFormat('m/d/Y', $request->startDate)->format('Y-m-d');
+            $startDate = Carbon::parse($request->startDate)->format("Y-m-d");
         }
 
         if(!empty($request->endDate)){
-            $endDate = Carbon::createFromFormat('m/d/Y', $request->endDate)->format('Y-m-d');
+            $endDate = Carbon::parse($request->endDate)->format("Y-m-d");
         }
         
         if(!empty($request->name)){
@@ -46,10 +50,17 @@ class TasksController extends BaseController
         if(!empty($request->status)){
             $status = $request->status;
         }
- 
-        $totals = auth()->user()->tasks;
+        
+        $tasks = auth()->user()->tasks()
+        ->where('name', 'like', $name.'%')
+        ->where('date' ,'>=',$startDate)
+        ->where('date','<=',$endDate)
+        ->when($status, function ($query, $status) {
+            return $query->where('status','=', $status);
+        })
+        ->get();
 
-        return $this->sendResponse($totals, []);                            
+        return $this->sendResponse($tasks, []);                            
 }
 };
 
