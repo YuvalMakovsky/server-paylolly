@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Auth;
 class TasksController extends BaseController
 {   
     /**
-     * get tasks
+     * fetch tasks for the table
+     * mendatory params - start date,end date
+     * optional params - name,status
      * return collection
      */
     public function getTasks(Request $request){
@@ -35,6 +37,8 @@ class TasksController extends BaseController
         $status = '';
         $startDate = Carbon::today()->format("Y-m-d");
         $endDate = Carbon::today()->format("Y-m-d");
+
+        //format dates
         if(!empty($request->startDate)){
             $startDate = Carbon::parse($request->startDate)->format("Y-m-d");
         }
@@ -65,6 +69,12 @@ class TasksController extends BaseController
         return $this->sendResponse($tasks, []);                            
 }
 
+/**
+ * create/update single task
+ * mendatory params - date,status,name
+ * optional params - id
+ * return collection
+ */
 public function createTask(Request $request){
 
     $validator = Validator::make($request->all(), [
@@ -90,8 +100,6 @@ public function createTask(Request $request){
        $status = $request->status;
    }
 
-   $success;
-
    if(!empty($request->id)){
     $task = auth()->user()->tasks()->find($request->id);
     $success = $task->update([
@@ -100,7 +108,6 @@ public function createTask(Request $request){
         'date'=>$date
     ]);
    }else{
-
     $success = auth()->user()->tasks()->create([
         'name'=>$name,
         'status'=>$status,
@@ -110,13 +117,15 @@ public function createTask(Request $request){
   
    if($success){
     return $this->sendResponse($success, []);  
-   }else{
-    return $this->sendError('Failed', ['Failed'],500);    
    }
 
-                              
+    return $this->sendError('Failed', ['Failed'],500);                              
 }
 
+/**
+ * mendatory params - id
+ * return collection
+ */
 public function deleteTask(Request $request){
 
     $validator = Validator::make($request->all(), [
@@ -126,13 +135,15 @@ public function deleteTask(Request $request){
     if($validator->fails()){
         return $this->sendError('Validation Error', $validator->errors(),403);       
     }
+
     $success = auth()->user()->tasks()->find($request->id)->delete();
 
     if($success){
         return $this->sendResponse($success, []);  
-     }else{
-        return $this->sendError('Failed', ['Failed'],500);    
-    }
+     }
+
+    return $this->sendError('Failed', ['Failed'],500);    
+    
 
 }
 

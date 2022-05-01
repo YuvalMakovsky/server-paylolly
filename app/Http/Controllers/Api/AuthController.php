@@ -11,9 +11,24 @@ use App\Models\User;
 
 
 class AuthController extends BaseController
-{
+{   
+    /**
+     * signin user and create session
+     * mendatory params - email,password
+     * return collection
+     */
     public function signin(Request $request)
     {
+        
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+        
+        if($validator->fails()){
+            return $this->sendError('Validation Error', $validator->errors(),403);       
+        }
+
         if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
             $request->session()->regenerate();
             $authUser = Auth::user(); 
@@ -27,6 +42,11 @@ class AuthController extends BaseController
         } 
     }
 
+    /**
+     * signup user and create session
+     * mendatory params - email,password,name
+     * return collection
+     */
     public function signup(Request $request)
     {
    
@@ -50,13 +70,10 @@ class AuthController extends BaseController
             return $this->sendError('Failed to Create User', [],500);    
         }
 
-
         if(Auth::attempt(['email' => $user->email, 'password' => $request->password])){ 
         $request->session()->regenerate();
         $success['name']= $user->name;
         $success['email'] = $user->email;
-
- 
 
         return $this->sendResponse($success, 'User created successfully.');
         }else{
@@ -64,6 +81,9 @@ class AuthController extends BaseController
         }
     }
     
+    /**
+     * logout user
+     */
     public function logout(Request $request)
     {
         $request->session()->invalidate();
